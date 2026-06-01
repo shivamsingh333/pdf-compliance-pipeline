@@ -152,7 +152,7 @@ This project supports multiple AI providers. Get a free key from any of these:
 
 ## 🌐 Live Demo
 
-👉 [Click here to try the live app](https://shivamsingh333-pdf-compliance-pipeline-app.streamlit.app)
+👉 [Click here to try the live app](https://pdf-compliance-pipeline-6ig5ixflnj6rccrkj3sevr.streamlit.app)
 
 ---
 
