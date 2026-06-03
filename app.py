@@ -311,7 +311,7 @@ with st.sidebar:
     )
 
     model_map = {
-        "Groq (LLaMA 3)": ["llama3-70b-8192", "llama3-8b-8192", "mixtral-8x7b-32768"],
+        "Groq (LLaMA 3)": ["llama-3.3-70b-versatile", "llama-3.1-8b-instant", "meta-llama/llama-4-scout-17b-16e-instruct"],
         "Anthropic (Claude)": ["claude-3-5-sonnet-20241022", "claude-3-haiku-20240307"],
         "Google (Gemini)": ["gemini-1.5-pro", "gemini-1.5-flash"],
         "OpenAI (GPT-4)": ["gpt-4o", "gpt-4o-mini", "gpt-4-turbo"]
