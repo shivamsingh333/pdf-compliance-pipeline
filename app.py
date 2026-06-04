@@ -16,21 +16,44 @@ st.markdown("""
   html, body, [class*="css"] { font-family: 'Space Grotesk', sans-serif; }
   .stApp { background: linear-gradient(135deg, #0a0e1a 0%, #0d1530 50%, #0a1628 100%); }
   [data-testid="stSidebar"] { background: rgba(13,21,48,0.95); border-right: 1px solid rgba(0,217,255,0.15); }
+
   .hero-header { background: linear-gradient(135deg,rgba(0,217,255,0.08),rgba(100,60,255,0.08)); border:1px solid rgba(0,217,255,0.2); border-radius:16px; padding:2rem 2.5rem; margin-bottom:2rem; }
   .hero-title { font-size:2.2rem; font-weight:700; background:linear-gradient(135deg,#00d9ff,#6b3fff); -webkit-background-clip:text; -webkit-text-fill-color:transparent; margin:0; }
   .hero-subtitle { color:rgba(255,255,255,0.55); font-size:0.95rem; margin-top:0.5rem; }
+
   .section-header { font-size:0.7rem; font-weight:600; text-transform:uppercase; letter-spacing:2px; color:rgba(0,217,255,0.7); margin-bottom:0.75rem; padding-bottom:0.5rem; border-bottom:1px solid rgba(0,217,255,0.1); }
+
   .metric-card { background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.08); border-radius:12px; padding:1.2rem 1.5rem; text-align:center; }
   .metric-value { font-size:2rem; font-weight:700; color:#00d9ff; }
   .metric-label { font-size:0.75rem; color:rgba(255,255,255,0.45); text-transform:uppercase; letter-spacing:1px; margin-top:4px; }
-  .badge-pass { background:rgba(0,255,120,0.12); color:#00ff78; border:1px solid rgba(0,255,120,0.3); border-radius:20px; padding:3px 12px; font-size:0.75rem; font-weight:600; }
-  .badge-fail { background:rgba(255,60,60,0.12); color:#ff6b6b; border:1px solid rgba(255,60,60,0.3); border-radius:20px; padding:3px 12px; font-size:0.75rem; font-weight:600; }
-  .badge-warn { background:rgba(255,190,0,0.12); color:#ffbe00; border:1px solid rgba(255,190,0,0.3); border-radius:20px; padding:3px 12px; font-size:0.75rem; font-weight:600; }
-  .badge-rag { background:rgba(107,63,255,0.15); color:#a78bfa; border:1px solid rgba(107,63,255,0.3); border-radius:20px; padding:3px 12px; font-size:0.75rem; font-weight:600; }
-  .result-card { background:rgba(255,255,255,0.025); border:1px solid rgba(255,255,255,0.07); border-radius:10px; padding:1rem 1.25rem; margin-bottom:0.75rem; }
-  .result-card-fail { border-left:3px solid #ff6b6b; }
-  .result-card-pass { border-left:3px solid #00ff78; }
+
+  .badge-pass     { background:rgba(0,255,120,0.12);   color:#00ff78; border:1px solid rgba(0,255,120,0.3);   border-radius:20px; padding:3px 12px; font-size:0.75rem; font-weight:600; }
+  .badge-fail     { background:rgba(255,60,60,0.12);   color:#ff6b6b; border:1px solid rgba(255,60,60,0.3);   border-radius:20px; padding:3px 12px; font-size:0.75rem; font-weight:600; }
+  .badge-warn     { background:rgba(255,190,0,0.12);   color:#ffbe00; border:1px solid rgba(255,190,0,0.3);   border-radius:20px; padding:3px 12px; font-size:0.75rem; font-weight:600; }
+  .badge-rag      { background:rgba(107,63,255,0.15);  color:#a78bfa; border:1px solid rgba(107,63,255,0.3);  border-radius:20px; padding:3px 12px; font-size:0.75rem; font-weight:600; }
+  .badge-skip     { background:rgba(255,255,255,0.06); color:rgba(255,255,255,0.4); border:1px solid rgba(255,255,255,0.1); border-radius:20px; padding:3px 12px; font-size:0.75rem; font-weight:600; }
+
+  .sev-critical { background:rgba(180,0,0,0.2);    color:#ff4444; border:1px solid rgba(255,68,68,0.4);   border-radius:6px; padding:2px 10px; font-size:0.72rem; font-weight:700; letter-spacing:0.5px; }
+  .sev-high     { background:rgba(255,107,0,0.15); color:#ff8c42; border:1px solid rgba(255,140,66,0.4);  border-radius:6px; padding:2px 10px; font-size:0.72rem; font-weight:700; }
+  .sev-medium   { background:rgba(255,190,0,0.12); color:#ffbe00; border:1px solid rgba(255,190,0,0.35);  border-radius:6px; padding:2px 10px; font-size:0.72rem; font-weight:700; }
+  .sev-low      { background:rgba(0,217,255,0.1);  color:#00d9ff; border:1px solid rgba(0,217,255,0.3);   border-radius:6px; padding:2px 10px; font-size:0.72rem; font-weight:700; }
+  .sev-none     { background:rgba(0,255,120,0.08); color:#00ff78; border:1px solid rgba(0,255,120,0.2);   border-radius:6px; padding:2px 10px; font-size:0.72rem; font-weight:600; }
+
+  .matrix-table { width:100%; border-collapse:collapse; margin-top:1rem; }
+  .matrix-table th { background:rgba(0,217,255,0.06); color:rgba(0,217,255,0.8); font-size:0.68rem; font-weight:600; text-transform:uppercase; letter-spacing:1px; padding:10px 14px; text-align:left; border-bottom:1px solid rgba(0,217,255,0.15); }
+  .matrix-table td { padding:12px 14px; border-bottom:1px solid rgba(255,255,255,0.05); vertical-align:top; font-size:0.82rem; color:rgba(255,255,255,0.75); }
+  .matrix-table tr:hover td { background:rgba(255,255,255,0.02); }
+
+  .result-card       { background:rgba(255,255,255,0.025); border:1px solid rgba(255,255,255,0.07); border-radius:10px; padding:1rem 1.25rem; margin-bottom:0.75rem; }
+  .result-card-fail  { border-left:3px solid #ff6b6b; }
+  .result-card-pass  { border-left:3px solid #00ff78; }
+  .result-card-crit  { border-left:3px solid #ff4444; background:rgba(180,0,0,0.06); }
+
   .rule-card { background:rgba(255,255,255,0.025); border:1px solid rgba(107,63,255,0.2); border-radius:10px; padding:1rem 1.25rem; margin-bottom:0.6rem; }
+
+  .violation-box { background:rgba(255,68,68,0.08); border:1px solid rgba(255,68,68,0.2); border-radius:6px; padding:6px 10px; font-family:'JetBrains Mono',monospace; font-size:0.75rem; color:#ff9090; margin-top:6px; }
+  .remediation-box { background:rgba(0,255,120,0.05); border:1px solid rgba(0,255,120,0.15); border-radius:6px; padding:6px 10px; font-size:0.78rem; color:rgba(0,255,120,0.8); margin-top:6px; }
+
   .stButton > button { background:linear-gradient(135deg,#00d9ff,#6b3fff) !important; color:white !important; border:none !important; border-radius:8px !important; font-family:'Space Grotesk',sans-serif !important; font-weight:600 !important; padding:0.6rem 2rem !important; }
   .stProgress > div > div { background:linear-gradient(90deg,#00d9ff,#6b3fff) !important; }
   .stTextArea textarea, .stTextInput input { background:rgba(255,255,255,0.04) !important; border:1px solid rgba(255,255,255,0.1) !important; color:white !important; border-radius:8px !important; font-family:'Space Grotesk',sans-serif !important; }
@@ -40,10 +63,77 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 
-# ─── Init Vector DB on startup ────────────────────────────────────────────────
+# ─── Helpers ──────────────────────────────────────────────────────────────────
+def severity_badge(sev: str) -> str:
+    sev = (sev or "None").strip()
+    classes = {"Critical": "sev-critical", "High": "sev-high",
+               "Medium": "sev-medium",    "Low":  "sev-low", "None": "sev-none"}
+    cls = classes.get(sev, "sev-none")
+    return f'<span class="{cls}">{sev}</span>'
+
+
+def status_badge(status: str) -> str:
+    status = (status or "").upper()
+    if status == "PASS":   return '<span class="badge-pass">PASS</span>'
+    if status == "FAIL":   return '<span class="badge-fail">FAIL</span>'
+    if status == "SKIP":   return '<span class="badge-skip">SKIP</span>'
+    if status == "WARN":   return '<span class="badge-warn">WARN</span>'
+    return f'<span class="badge-warn">{status}</span>'
+
+
+def render_compliance_matrix(report: dict):
+    """Render the full compliance matrix table."""
+    controls = {k: v for k, v in report.items() if k != "_summary"}
+    if not controls:
+        st.info("No results to display.")
+        return
+
+    rows_html = ""
+    for control_name, data in controls.items():
+        status   = data.get("status", "—")
+        sev      = data.get("severity", "None")
+        pages    = data.get("flagged_pages", [])
+        vtext    = data.get("violation_text", "") or "—"
+        explain  = data.get("explanation", "—")
+        remed    = data.get("remediation", "—")
+
+        pages_str = ", ".join([f"P{p}" for p in pages]) if pages else "—"
+        vtext_display = f'<code style="color:#ff9090;font-size:0.75rem;">{vtext[:60]}{"..." if len(vtext)>60 else ""}</code>' if vtext != "—" else "—"
+
+        rows_html += f"""
+        <tr>
+          <td style="font-weight:600;color:rgba(255,255,255,0.9);">{control_name}</td>
+          <td>{status_badge(status)}</td>
+          <td>{severity_badge(sev)}</td>
+          <td style="color:rgba(0,217,255,0.7);font-family:'JetBrains Mono',monospace;font-size:0.78rem;">{pages_str}</td>
+          <td>{vtext_display}</td>
+          <td style="color:rgba(255,255,255,0.6);font-size:0.8rem;max-width:200px;">{explain}</td>
+          <td style="color:rgba(0,255,120,0.75);font-size:0.8rem;max-width:180px;">{remed}</td>
+        </tr>"""
+
+    st.markdown(f"""
+    <div style="overflow-x:auto;">
+    <table class="matrix-table">
+      <thead>
+        <tr>
+          <th>Control</th>
+          <th>Status</th>
+          <th>Severity</th>
+          <th>Pages</th>
+          <th>Violation Found</th>
+          <th>Explanation</th>
+          <th>Remediation</th>
+        </tr>
+      </thead>
+      <tbody>{rows_html}</tbody>
+    </table>
+    </div>
+    """, unsafe_allow_html=True)
+
+
+# ─── Init Vector DB ───────────────────────────────────────────────────────────
 @st.cache_resource
 def init_vector_db():
-    """Initialize Vector DB once and rebuild FAISS index."""
     try:
         from utils.vector_store import seed_default_rules, rebuild_faiss_from_chroma
         seed_default_rules()
@@ -60,7 +150,7 @@ def run_pipeline(uploaded_file, api_key, api_provider, model_name):
     from utils.pdf_extractor import extract_text_by_page
     from langgraph_pipeline.pipeline import build_pipeline
 
-    progress_bar = st.progress(0, text="Initializing pipeline...")
+    progress_bar = st.progress(0, text="Initializing...")
     status_text  = st.empty()
 
     try:
@@ -68,20 +158,19 @@ def run_pipeline(uploaded_file, api_key, api_provider, model_name):
         progress_bar.progress(10, text="Extracting text...")
         pages = extract_text_by_page(uploaded_file)
 
-        status_text.markdown('<p style="color:#a78bfa;font-size:0.85rem;">🔍 Retrieving compliance rules from Vector DB (RAG)...</p>', unsafe_allow_html=True)
+        status_text.markdown('<p style="color:#a78bfa;font-size:0.85rem;">🔮 Retrieving compliance rules from Vector DB (RAG)...</p>', unsafe_allow_html=True)
         progress_bar.progress(25, text="RAG: fetching rules...")
 
         status_text.markdown('<p style="color:#00d9ff;font-size:0.85rem;">🔗 Building LangGraph pipeline...</p>', unsafe_allow_html=True)
         progress_bar.progress(40, text="Building pipeline...")
 
         pipeline = build_pipeline(
-            api_key=api_key,
-            provider=api_provider,
+            api_key=api_key, provider=api_provider,
             model=model_name,
             rules_config=st.session_state.compliance_rules
         )
 
-        status_text.markdown('<p style="color:#00d9ff;font-size:0.85rem;">🤖 Running AI compliance checks...</p>', unsafe_allow_html=True)
+        status_text.markdown('<p style="color:#00d9ff;font-size:0.85rem;">🤖 Enterprise Compliance Auditor analyzing document...</p>', unsafe_allow_html=True)
         progress_bar.progress(60, text="AI analysis running...")
 
         result = pipeline.invoke({
@@ -90,55 +179,74 @@ def run_pipeline(uploaded_file, api_key, api_provider, model_name):
             "rules_config": st.session_state.compliance_rules
         })
 
-        progress_bar.progress(90, text="Generating report...")
-        report = result.get("report", {})
-        total_issues = sum(1 for k, v in report.items() if k != "_summary" and v.get("status") == "FAIL")
+        progress_bar.progress(90, text="Building compliance matrix...")
+        report  = result.get("report", {})
+        summary = report.get("_summary", {})
+        total_issues   = summary.get("failed_controls", 0)
         overall_status = "FAILED" if total_issues > 0 else "PASSED"
+        highest_sev    = summary.get("highest_severity", "None")
+        rules_source   = summary.get("rules_source", "Unknown")
 
         st.session_state.scan_history.append({
-            "filename":     uploaded_file.name,
-            "timestamp":    datetime.now().strftime("%Y-%m-%d %H:%M"),
-            "status":       overall_status,
-            "total_issues": total_issues,
-            "report":       report,
-            "rules_source": report.get("_summary", {}).get("rules_source", "Unknown")
+            "filename":        uploaded_file.name,
+            "timestamp":       datetime.now().strftime("%Y-%m-%d %H:%M"),
+            "status":          overall_status,
+            "total_issues":    total_issues,
+            "highest_severity": highest_sev,
+            "report":          report,
+            "rules_source":    rules_source
         })
 
         progress_bar.progress(100, text="Complete!")
         status_text.empty()
 
-        rules_source = report.get("_summary", {}).get("rules_source", "")
-        if rules_source:
-            st.markdown(f'<span class="badge-rag">🔮 Rules source: {rules_source}</span>', unsafe_allow_html=True)
+        # ── Summary bar ──────────────────────────────────────────────────────
+        st.markdown(f"""
+        <div style="display:flex;gap:10px;align-items:center;margin-bottom:1rem;flex-wrap:wrap;">
+          <span class="badge-rag">🔮 {rules_source}</span>
+          {severity_badge(highest_sev)}
+          <span style="color:rgba(255,255,255,0.4);font-size:0.8rem;">Highest severity detected</span>
+        </div>""", unsafe_allow_html=True)
 
         if overall_status == "PASSED":
-            st.success("✅ All compliance checks passed! Document is clean.")
+            st.success("✅ All compliance controls passed! Document is clean.")
         else:
-            st.error(f"❌ {total_issues} compliance issue(s) detected.")
+            st.error(f"❌ {total_issues} compliance control(s) failed.")
 
-        st.markdown("### Scan Results")
-        for check_name, check_result in report.items():
-            if check_name == "_summary":
-                continue
-            is_pass = check_result.get("status") == "PASS"
-            icon  = "✅" if is_pass else "❌"
-            badge = '<span class="badge-pass">PASS</span>' if is_pass else '<span class="badge-fail">FAIL</span>'
-            flagged = check_result.get("flagged_pages", [])
-            pages_html = ""
-            if flagged:
-                pages_html = "<div style='margin-top:6px;'>" + "".join(
-                    [f'<span style="background:rgba(255,107,107,0.15);color:#ff9090;border-radius:5px;padding:2px 8px;font-size:0.72rem;margin-right:4px;font-family:JetBrains Mono,monospace;">Page {p}</span>'
-                     for p in flagged]
-                ) + "</div>"
+        # ── Compliance Matrix ─────────────────────────────────────────────────
+        st.markdown("### 📊 Compliance Matrix")
+        render_compliance_matrix(report)
 
-            st.markdown(f"""
-            <div class="result-card {'result-card-pass' if is_pass else 'result-card-fail'}">
-              <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
-                <span style="color:white;font-weight:600;">{icon} {check_name}</span>{badge}
-              </div>
-              <p style="color:rgba(255,255,255,0.6);font-size:0.82rem;margin:0;">{check_result.get('details','')}</p>
-              {pages_html}
-            </div>""", unsafe_allow_html=True)
+        # ── Detailed cards for FAILED controls ───────────────────────────────
+        failed_controls = {k: v for k, v in report.items()
+                           if k != "_summary" and v.get("status") == "FAIL"}
+        if failed_controls:
+            st.markdown("### 🔍 Failed Controls — Detail View")
+            for ctrl_name, data in failed_controls.items():
+                sev = data.get("severity", "None")
+                card_cls = "result-card-crit" if sev == "Critical" else "result-card-fail"
+                vtext = data.get("violation_text", "")
+                remed = data.get("remediation", "")
+                pages_list = data.get("flagged_pages", [])
+                pages_html = "".join([
+                    f'<span style="background:rgba(255,107,107,0.15);color:#ff9090;border-radius:5px;padding:2px 8px;font-size:0.72rem;margin-right:4px;font-family:JetBrains Mono,monospace;">Page {p}</span>'
+                    for p in pages_list
+                ])
+
+                st.markdown(f"""
+                <div class="result-card {card_cls}">
+                  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;flex-wrap:wrap;gap:6px;">
+                    <span style="color:white;font-weight:600;font-size:0.95rem;">❌ {ctrl_name}</span>
+                    <div style="display:flex;gap:8px;align-items:center;">
+                      {severity_badge(sev)}
+                      {status_badge("FAIL")}
+                    </div>
+                  </div>
+                  <p style="color:rgba(255,255,255,0.65);font-size:0.82rem;margin:0 0 6px 0;">{data.get('explanation','')}</p>
+                  {f'<div class="violation-box">⚠️ Violation: {vtext}</div>' if vtext else ''}
+                  {f'<div class="remediation-box">✅ Remediation: {remed}</div>' if remed else ''}
+                  {f'<div style="margin-top:8px;">{pages_html}</div>' if pages_list else ''}
+                </div>""", unsafe_allow_html=True)
 
     except Exception as e:
         progress_bar.empty()
@@ -152,21 +260,21 @@ if "scan_history" not in st.session_state:
     st.session_state.scan_history = []
 if "compliance_rules" not in st.session_state:
     st.session_state.compliance_rules = {
-        "pii_check":              True,
-        "pii_description":        "Flag PII: emails, phones, Aadhaar, PAN, SSN, credit cards, API keys",
-        "confidential_check":     True,
-        "confidential_description": "Flag confidential business info, trade secrets, API keys, passwords",
-        "encoding_check":         True,
-        "encoding_description":   "Check UTF-8 encoding consistency (English only)",
-        "abusive_check":          True,
-        "abusive_description":    "Flag abusive, offensive, or unlawful content",
+        "pii_check":               True,
+        "pii_description":         "Flag emails, phones, Aadhaar, PAN, SSN, credit cards, API keys",
+        "confidential_check":      True,
+        "confidential_description":"Flag confidential business info, trade secrets, API keys, passwords",
+        "encoding_check":          True,
+        "encoding_description":    "Check UTF-8 encoding consistency (English only)",
+        "abusive_check":           True,
+        "abusive_description":     "Flag abusive, offensive, or unlawful content",
     }
 
 
 # ─── Sidebar ──────────────────────────────────────────────────────────────────
 with st.sidebar:
     st.markdown('<p style="color:#00d9ff;font-weight:700;font-size:1.1rem;letter-spacing:1px;">🛡️ ComplianceAI</p>', unsafe_allow_html=True)
-    st.markdown('<p style="color:rgba(255,255,255,0.35);font-size:0.75rem;margin-top:-8px;">PDF Compliance Scanner + RAG</p>', unsafe_allow_html=True)
+    st.markdown('<p style="color:rgba(255,255,255,0.35);font-size:0.75rem;margin-top:-8px;">Enterprise Compliance Matrix + RAG</p>', unsafe_allow_html=True)
 
     if vector_db_status is True:
         st.markdown('<span class="badge-rag">🔮 Vector DB ready</span>', unsafe_allow_html=True)
@@ -175,17 +283,23 @@ with st.sidebar:
 
     st.markdown("---")
     st.markdown('<p class="section-header">Navigation</p>', unsafe_allow_html=True)
-    page = st.radio("", ["📄 Scan PDF", "🔮 Rule Manager (RAG)", "⚙️ Check Settings", "📊 Reports", "📜 History"], label_visibility="collapsed")
+    page = st.radio("", [
+        "📄 Scan PDF",
+        "🔮 Rule Manager (RAG)",
+        "⚙️ Check Settings",
+        "📊 Reports",
+        "📜 History"
+    ], label_visibility="collapsed")
 
     st.markdown("---")
     st.markdown('<p class="section-header">API Configuration</p>', unsafe_allow_html=True)
     api_provider = st.selectbox("AI Provider", ["Groq (LLaMA 3)", "Anthropic (Claude)", "Google (Gemini)", "OpenAI (GPT-4)"])
     api_key      = st.text_input("API Key", type="password", placeholder="Enter your API key...")
     model_map = {
-        "Groq (LLaMA 3)":    ["llama-3.3-70b-versatile", "llama-3.1-8b-instant"],
-        "Anthropic (Claude)": ["claude-3-5-sonnet-20241022", "claude-3-haiku-20240307"],
-        "Google (Gemini)":    ["gemini-1.5-pro", "gemini-1.5-flash"],
-        "OpenAI (GPT-4)":     ["gpt-4o", "gpt-4o-mini"]
+        "Groq (LLaMA 3)":     ["llama-3.3-70b-versatile", "llama-3.1-8b-instant"],
+        "Anthropic (Claude)":  ["claude-3-5-sonnet-20241022", "claude-3-haiku-20240307"],
+        "Google (Gemini)":     ["gemini-1.5-pro", "gemini-1.5-flash"],
+        "OpenAI (GPT-4)":      ["gpt-4o", "gpt-4o-mini"]
     }
     model_name = st.selectbox("Model", model_map[api_provider])
     if api_key:
@@ -200,11 +314,12 @@ with st.sidebar:
 # ══════════════════════════════════════════════════════════════════════════════
 if page == "📄 Scan PDF":
     st.markdown("""<div class="hero-header">
-      <h1 class="hero-title">PDF Compliance Scanner</h1>
-      <p class="hero-subtitle">AI-powered analysis with dynamic rules retrieved from Vector DB (RAG)</p>
+      <h1 class="hero-title">Enterprise Compliance Scanner</h1>
+      <p class="hero-subtitle">AI-powered compliance matrix with severity levels, violation evidence & remediation — powered by RAG</p>
     </div>""", unsafe_allow_html=True)
 
     col1, col2 = st.columns([3, 2])
+    scan_clicked = False  # initialize before columns
 
     with col1:
         st.markdown('<p class="section-header">Upload Document</p>', unsafe_allow_html=True)
@@ -215,28 +330,30 @@ if page == "📄 Scan PDF":
             uploaded_file.seek(0)
             st.markdown(f"""<div class="result-card result-card-pass">
               <div style="display:flex;justify-content:space-between;align-items:center;">
-                <div><p style="color:white;font-weight:600;margin:0;">📄 {uploaded_file.name}</p>
-                <p style="color:rgba(255,255,255,0.4);margin:0;font-size:0.8rem;">{file_size:.1f} KB · PDF</p></div>
+                <div>
+                  <p style="color:white;font-weight:600;margin:0;">📄 {uploaded_file.name}</p>
+                  <p style="color:rgba(255,255,255,0.4);margin:0;font-size:0.8rem;">{file_size:.1f} KB · PDF</p>
+                </div>
                 <span class="badge-pass">READY</span>
               </div></div>""", unsafe_allow_html=True)
 
-            # Show RAG badge
-            st.markdown('<span class="badge-rag">🔮 Rules will be retrieved from Vector DB at scan time</span>', unsafe_allow_html=True)
+            st.markdown('<span class="badge-rag">🔮 Rules retrieved from Vector DB at scan time</span>', unsafe_allow_html=True)
             st.markdown("<br>", unsafe_allow_html=True)
 
             if not api_key:
                 st.warning("⚠️ Enter your API key in the sidebar.")
             else:
-                if st.button("🚀 Run Compliance Scan", use_container_width=True):
-                    run_pipeline(uploaded_file, api_key, api_provider, model_name)
+                scan_clicked = st.button("🚀 Run Compliance Scan", use_container_width=True)
+
+    # Results rendered OUTSIDE columns — full width, no blur
+    if uploaded_file and api_key and scan_clicked:
+        run_pipeline(uploaded_file, api_key, api_provider, model_name)
 
     with col2:
         st.markdown('<p class="section-header">Quick Stats</p>', unsafe_allow_html=True)
         total  = len(st.session_state.scan_history)
         failed = sum(1 for s in st.session_state.scan_history if s.get("status") == "FAILED")
         passed = total - failed
-
-        # Show rule count from Vector DB
         try:
             from utils.vector_store import get_all_rules_from_chroma
             rule_count = len(get_all_rules_from_chroma())
@@ -254,11 +371,15 @@ if page == "📄 Scan PDF":
             st.markdown('<p class="section-header">Recent Scans</p>', unsafe_allow_html=True)
             for scan in reversed(st.session_state.scan_history[-5:]):
                 badge_class = "badge-pass" if scan["status"] == "PASSED" else "badge-fail"
+                sev = scan.get("highest_severity", "")
+                sev_html = severity_badge(sev) if sev and sev != "None" else ""
                 st.markdown(f"""<div class="result-card" style="margin-bottom:8px;">
                   <div style="display:flex;justify-content:space-between;align-items:center;">
-                    <div><p style="color:rgba(255,255,255,0.85);margin:0;font-size:0.82rem;font-weight:500;">{scan['filename'][:22]}{'...' if len(scan['filename'])>22 else ''}</p>
-                    <p style="color:rgba(255,255,255,0.3);margin:0;font-size:0.72rem;">{scan['timestamp']}</p></div>
-                    <span class="{badge_class}">{scan['status']}</span>
+                    <div>
+                      <p style="color:rgba(255,255,255,0.85);margin:0;font-size:0.82rem;font-weight:500;">{scan['filename'][:22]}{'...' if len(scan['filename'])>22 else ''}</p>
+                      <p style="color:rgba(255,255,255,0.3);margin:0;font-size:0.72rem;">{scan['timestamp']}</p>
+                    </div>
+                    <div style="display:flex;gap:6px;align-items:center;">{sev_html}<span class="{badge_class}">{scan['status']}</span></div>
                   </div></div>""", unsafe_allow_html=True)
 
 
@@ -268,65 +389,54 @@ if page == "📄 Scan PDF":
 elif page == "🔮 Rule Manager (RAG)":
     st.markdown("""<div class="hero-header">
       <h1 class="hero-title">Rule Manager</h1>
-      <p class="hero-subtitle">Add, edit, and delete compliance rules stored in the Vector DB. Rules are retrieved dynamically at scan time using RAG.</p>
+      <p class="hero-subtitle">Add, edit, and delete compliance rules stored in Vector DB. Retrieved dynamically at scan time via RAG.</p>
     </div>""", unsafe_allow_html=True)
 
     try:
         from utils.vector_store import (add_compliance_rule, delete_compliance_rule,
                                          get_all_rules_from_chroma)
 
-        # ── Add New Rule ──────────────────────────────────────────────────────
         st.markdown('<p class="section-header">Add New Rule</p>', unsafe_allow_html=True)
-
         col1, col2 = st.columns([3, 1])
         with col1:
             new_rule_text = st.text_area(
                 "Rule description",
                 placeholder='e.g. "Never allow: Aadhaar numbers, PAN card numbers, API keys, employee salary data"',
-                height=100,
-                key="new_rule_input"
+                height=100, key="new_rule_input"
             )
         with col2:
             category = st.selectbox("Category", ["PII", "Confidential", "Abusive", "Encoding", "Custom"], key="new_cat")
             st.markdown("<br>", unsafe_allow_html=True)
-            add_clicked = st.button("➕ Add Rule", use_container_width=True)
-
-        if add_clicked:
-            if new_rule_text.strip():
-                rule_id = add_compliance_rule(new_rule_text.strip(), category)
-                st.success(f"✅ Rule added to Vector DB! (ID: {rule_id})")
-                st.rerun()
-            else:
-                st.warning("Please enter a rule description.")
+            if st.button("➕ Add Rule", use_container_width=True):
+                if new_rule_text.strip():
+                    rule_id = add_compliance_rule(new_rule_text.strip(), category)
+                    st.success(f"✅ Rule added! (ID: {rule_id})")
+                    st.rerun()
+                else:
+                    st.warning("Please enter a rule description.")
 
         st.markdown("---")
-
-        # ── Existing Rules ────────────────────────────────────────────────────
         st.markdown('<p class="section-header">Rules in Vector DB</p>', unsafe_allow_html=True)
-
         all_rules = get_all_rules_from_chroma()
 
         if not all_rules:
-            st.info("No rules in Vector DB yet. Add your first rule above!")
+            st.info("No rules yet. Add your first rule above!")
         else:
-            st.markdown(f'<p style="color:rgba(255,255,255,0.4);font-size:0.8rem;margin-bottom:1rem;">{len(all_rules)} rules stored — retrieved dynamically before each scan</p>', unsafe_allow_html=True)
-
-            # Category filter
+            st.markdown(f'<p style="color:rgba(255,255,255,0.4);font-size:0.8rem;margin-bottom:1rem;">{len(all_rules)} rules stored</p>', unsafe_allow_html=True)
             categories = ["All"] + list(set(r["category"] for r in all_rules))
             filter_cat = st.selectbox("Filter by category", categories, key="filter_cat")
+            filtered   = all_rules if filter_cat == "All" else [r for r in all_rules if r["category"] == filter_cat]
 
-            filtered = all_rules if filter_cat == "All" else [r for r in all_rules if r["category"] == filter_cat]
+            cat_colors = {
+                "PII":          ("rgba(0,217,255,0.1)",   "#00d9ff"),
+                "Confidential": ("rgba(255,190,0,0.1)",   "#ffbe00"),
+                "Abusive":      ("rgba(255,107,107,0.1)", "#ff6b6b"),
+                "Encoding":     ("rgba(0,255,120,0.1)",   "#00ff78"),
+                "Custom":       ("rgba(107,63,255,0.1)",  "#a78bfa"),
+            }
 
             for rule in filtered:
-                cat_colors = {
-                    "PII":         ("rgba(0,217,255,0.1)",  "#00d9ff"),
-                    "Confidential":("rgba(255,190,0,0.1)",  "#ffbe00"),
-                    "Abusive":     ("rgba(255,107,107,0.1)","#ff6b6b"),
-                    "Encoding":    ("rgba(0,255,120,0.1)",  "#00ff78"),
-                    "Custom":      ("rgba(107,63,255,0.1)", "#a78bfa"),
-                }
                 bg, color = cat_colors.get(rule["category"], ("rgba(255,255,255,0.05)", "rgba(255,255,255,0.6)"))
-
                 col1, col2 = st.columns([9, 1])
                 with col1:
                     st.markdown(f"""<div class="rule-card">
@@ -339,24 +449,23 @@ elif page == "🔮 Rule Manager (RAG)":
                     </div>""", unsafe_allow_html=True)
                 with col2:
                     st.markdown("<br><br>", unsafe_allow_html=True)
-                    if st.button("🗑️", key=f"del_{rule['id']}", help="Delete this rule"):
+                    if st.button("🗑️", key=f"del_{rule['id']}", help="Delete"):
                         delete_compliance_rule(rule["id"])
-                        st.success(f"Rule {rule['id']} deleted.")
+                        st.success("Deleted.")
                         st.rerun()
 
-        # ── RAG Preview ───────────────────────────────────────────────────────
         st.markdown("---")
         st.markdown('<p class="section-header">Test RAG Retrieval</p>', unsafe_allow_html=True)
-        test_query = st.text_input("Enter sample document text to see which rules get retrieved:", placeholder="e.g. This document contains employee salary information and Aadhaar numbers...")
+        test_query = st.text_input("Paste sample text to preview which rules get retrieved:", placeholder="e.g. employee Aadhaar numbers and salary...")
         if test_query:
             from utils.vector_store import retrieve_relevant_rules
             retrieved = retrieve_relevant_rules(test_query, top_k=4)
-            st.markdown('<p style="color:#a78bfa;font-size:0.85rem;margin-top:8px;">📋 Rules that would be injected into the AI prompt:</p>', unsafe_allow_html=True)
+            st.markdown('<p style="color:#a78bfa;font-size:0.85rem;margin-top:8px;">📋 Rules injected into AI prompt:</p>', unsafe_allow_html=True)
             st.code(retrieved, language="text")
 
     except Exception as e:
         st.error(f"Vector DB error: {str(e)}")
-        st.info("Run: pip install faiss-cpu chromadb sentence-transformers")
+        st.info("Run: pip3 install faiss-cpu chromadb sentence-transformers")
 
 
 # ══════════════════════════════════════════════════════════════════════════════
@@ -365,30 +474,20 @@ elif page == "🔮 Rule Manager (RAG)":
 elif page == "⚙️ Check Settings":
     st.markdown("""<div class="hero-header">
       <h1 class="hero-title">Check Settings</h1>
-      <p class="hero-subtitle">Toggle which compliance checks run. Fine-tune per-check prompts. Rules come from Vector DB.</p>
+      <p class="hero-subtitle">Toggle compliance controls on/off. Actual rules come from Vector DB.</p>
     </div>""", unsafe_allow_html=True)
 
     rules = st.session_state.compliance_rules
-
-    with st.expander("🔍 PII Detection", expanded=True):
-        c1, c2 = st.columns([1, 4])
-        with c1: rules["pii_check"] = st.toggle("Enable", value=rules["pii_check"], key="pii_t")
-        with c2: rules["pii_description"] = st.text_area("Prompt hint", value=rules["pii_description"], key="pii_d", height=80)
-
-    with st.expander("🔒 Confidential Info", expanded=True):
-        c1, c2 = st.columns([1, 4])
-        with c1: rules["confidential_check"] = st.toggle("Enable", value=rules["confidential_check"], key="conf_t")
-        with c2: rules["confidential_description"] = st.text_area("Prompt hint", value=rules["confidential_description"], key="conf_d", height=80)
-
-    with st.expander("🔤 Encoding Check", expanded=True):
-        c1, c2 = st.columns([1, 4])
-        with c1: rules["encoding_check"] = st.toggle("Enable", value=rules["encoding_check"], key="enc_t")
-        with c2: rules["encoding_description"] = st.text_area("Prompt hint", value=rules["encoding_description"], key="enc_d", height=80)
-
-    with st.expander("🚫 Abusive Content", expanded=True):
-        c1, c2 = st.columns([1, 4])
-        with c1: rules["abusive_check"] = st.toggle("Enable", value=rules["abusive_check"], key="abu_t")
-        with c2: rules["abusive_description"] = st.text_area("Prompt hint", value=rules["abusive_description"], key="abu_d", height=80)
+    for key, label, desc_key in [
+        ("pii_check",          "🔍 PII & Personal Data",         "pii_description"),
+        ("confidential_check", "🔒 Confidential Information",    "confidential_description"),
+        ("encoding_check",     "🔤 Encoding & Language",         "encoding_description"),
+        ("abusive_check",      "🚫 Abusive & Unlawful Content",  "abusive_description"),
+    ]:
+        with st.expander(label, expanded=True):
+            c1, c2 = st.columns([1, 4])
+            with c1: rules[key]      = st.toggle("Enable", value=rules[key], key=f"t_{key}")
+            with c2: rules[desc_key] = st.text_area("Prompt hint (supports Vector DB rules)", value=rules[desc_key], key=f"d_{key}", height=70)
 
     st.markdown("<br>", unsafe_allow_html=True)
     if st.button("💾 Save Settings"):
@@ -402,50 +501,38 @@ elif page == "⚙️ Check Settings":
 elif page == "📊 Reports":
     st.markdown("""<div class="hero-header">
       <h1 class="hero-title">Compliance Reports</h1>
-      <p class="hero-subtitle">Detailed AI-generated compliance analysis with page-level annotations</p>
+      <p class="hero-subtitle">Full compliance matrix with severity, violation evidence, and remediation per control</p>
     </div>""", unsafe_allow_html=True)
 
     if not st.session_state.scan_history:
         st.markdown("""<div style="text-align:center;padding:4rem 2rem;color:rgba(255,255,255,0.3);">
-          <p style="font-size:3rem;">📭</p><p style="font-size:1.1rem;font-weight:500;">No reports yet</p>
-          <p style="font-size:0.85rem;">Upload and scan a PDF first</p></div>""", unsafe_allow_html=True)
+          <p style="font-size:3rem;">📭</p>
+          <p style="font-size:1.1rem;font-weight:500;">No reports yet</p>
+          <p style="font-size:0.85rem;">Upload and scan a PDF first</p>
+        </div>""", unsafe_allow_html=True)
     else:
         for i, scan in enumerate(reversed(st.session_state.scan_history)):
-            status_badge = '<span class="badge-pass">PASSED</span>' if scan["status"] == "PASSED" else '<span class="badge-fail">FAILED</span>'
-            with st.expander(f"📄 {scan['filename']} — {scan['timestamp']}", expanded=(i == 0)):
-                rules_src = scan.get("rules_source", "")
-                st.markdown(f"""<div style="display:flex;gap:10px;align-items:center;margin-bottom:1rem;">
-                  {status_badge}
+            label = f"📄 {scan['filename']} — {scan['timestamp']}"
+            with st.expander(label, expanded=(i == 0)):
+                sev        = scan.get("highest_severity", "None")
+                rules_src  = scan.get("rules_source", "")
+                st.markdown(f"""<div style="display:flex;gap:10px;align-items:center;margin-bottom:1rem;flex-wrap:wrap;">
+                  {status_badge(scan['status'])}
+                  {severity_badge(sev)}
                   <span class="badge-rag">🔮 {rules_src}</span>
                   <span style="color:rgba(255,255,255,0.35);font-size:0.8rem;">{scan['timestamp']}</span>
                 </div>""", unsafe_allow_html=True)
 
-                report = scan.get("report", {})
-                for check_name, check_result in report.items():
-                    if check_name == "_summary": continue
-                    is_pass     = check_result.get("status") == "PASS"
-                    card_class  = "result-card-pass" if is_pass else "result-card-fail"
-                    badge_class = "badge-pass" if is_pass else "badge-fail"
-                    badge_text  = "PASS" if is_pass else "FAIL"
-                    flagged     = check_result.get("flagged_pages", [])
-                    pages_html  = ""
-                    if flagged:
-                        pages_html = "<div style='margin-top:8px;'>" + "".join(
-                            [f'<span style="background:rgba(255,107,107,0.15);color:#ff9090;border-radius:5px;padding:2px 8px;font-size:0.72rem;margin-right:4px;font-family:JetBrains Mono,monospace;">Page {p}</span>'
-                             for p in flagged]
-                        ) + "</div>"
-                    st.markdown(f"""<div class="result-card {card_class}">
-                      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
-                        <span style="color:white;font-weight:600;">{check_name}</span>
-                        <span class="{badge_class}">{badge_text}</span>
-                      </div>
-                      <p style="color:rgba(255,255,255,0.6);font-size:0.83rem;margin:0;">{check_result.get('details','')}</p>
-                      {pages_html}</div>""", unsafe_allow_html=True)
+                render_compliance_matrix(scan.get("report", {}))
 
                 report_json = json.dumps(scan, indent=2, default=str)
-                st.download_button("⬇️ Download JSON Report", data=report_json,
-                                   file_name=f"report_{scan['filename']}.json",
-                                   mime="application/json", key=f"dl_{i}")
+                st.download_button(
+                    "⬇️ Download JSON Report",
+                    data=report_json,
+                    file_name=f"compliance_matrix_{scan['filename']}.json",
+                    mime="application/json",
+                    key=f"dl_{i}"
+                )
 
 
 # ══════════════════════════════════════════════════════════════════════════════
@@ -460,17 +547,19 @@ elif page == "📜 History":
     if not st.session_state.scan_history:
         st.info("No scans yet. Upload a PDF to get started!")
     else:
-        for col, header in zip(st.columns([3, 2, 2, 1]), ["Filename", "Timestamp", "Status", "Issues"]):
-            col.markdown(f'<p style="color:rgba(255,255,255,0.4);font-size:0.75rem;font-weight:600;text-transform:uppercase;letter-spacing:1px;">{header}</p>', unsafe_allow_html=True)
+        for col, header in zip(st.columns([3, 2, 1, 1, 1]),
+                               ["Filename", "Timestamp", "Status", "Severity", "Issues"]):
+            col.markdown(f'<p style="color:rgba(255,255,255,0.4);font-size:0.72rem;font-weight:600;text-transform:uppercase;letter-spacing:1px;">{header}</p>', unsafe_allow_html=True)
         st.markdown('<hr style="margin:0.5rem 0;">', unsafe_allow_html=True)
 
         for scan in reversed(st.session_state.scan_history):
-            badge_class = "badge-pass" if scan["status"] == "PASSED" else "badge-fail"
-            c1, c2, c3, c4 = st.columns([3, 2, 2, 1])
-            with c1: st.markdown(f'<p style="color:rgba(255,255,255,0.85);font-size:0.85rem;margin:0;padding:6px 0;">{scan["filename"][:28]}</p>', unsafe_allow_html=True)
-            with c2: st.markdown(f'<p style="color:rgba(255,255,255,0.45);font-size:0.8rem;margin:0;padding:6px 0;">{scan["timestamp"]}</p>', unsafe_allow_html=True)
-            with c3: st.markdown(f'<span class="{badge_class}">{scan["status"]}</span>', unsafe_allow_html=True)
-            with c4:
+            c1, c2, c3, c4, c5 = st.columns([3, 2, 1, 1, 1])
+            sev = scan.get("highest_severity", "None")
+            with c1: st.markdown(f'<p style="color:rgba(255,255,255,0.85);font-size:0.82rem;margin:0;padding:6px 0;">{scan["filename"][:28]}</p>', unsafe_allow_html=True)
+            with c2: st.markdown(f'<p style="color:rgba(255,255,255,0.4);font-size:0.78rem;margin:0;padding:6px 0;">{scan["timestamp"]}</p>', unsafe_allow_html=True)
+            with c3: st.markdown(status_badge(scan["status"]), unsafe_allow_html=True)
+            with c4: st.markdown(severity_badge(sev), unsafe_allow_html=True)
+            with c5:
                 issues = scan.get("total_issues", 0)
                 color  = "#ff6b6b" if issues > 0 else "#00ff78"
                 st.markdown(f'<p style="color:{color};font-weight:600;font-size:0.9rem;margin:0;padding:6px 0;">{issues}</p>', unsafe_allow_html=True)

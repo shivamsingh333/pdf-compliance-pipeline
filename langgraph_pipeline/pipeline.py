@@ -1,11 +1,7 @@
 """
-LangGraph Compliance Pipeline — RAG Edition
-Now retrieves compliance rules dynamically from Vector DB before each check.
-
-Flow:
-  START → inject_credentials → retrieve_rules (RAG) →
-  [pii_check, confidential_check, encoding_check, abuse_check] →
-  aggregate_results → END
+LangGraph Compliance Pipeline — Enterprise Matrix Edition
+Uses structured Enterprise Auditor prompt for each compliance check.
+Returns severity, violation text, page number, explanation, remediation.
 """
 from typing import TypedDict, Annotated
 import json
@@ -13,369 +9,461 @@ import re
 import operator
 
 
-# ─── State Definition ─────────────────────────────────────────────────────────
+# ─── State ────────────────────────────────────────────────────────────────────
 class ComplianceState(TypedDict):
     pages: list
     filename: str
-    rules_config: dict          # UI toggles (on/off per check)
+    rules_config: dict
     api_key: str
     provider: str
     model: str
-    retrieved_rules: str        # ← NEW: rules fetched from Vector DB
+    retrieved_rules: str
     report: dict
     errors: Annotated[list, operator.add]
 
 
 # ─── AI Client Factory ────────────────────────────────────────────────────────
 def get_ai_client(provider: str, api_key: str, model: str):
-    """Returns a callable: (system_prompt, user_prompt) → str."""
-
     if "Groq" in provider:
         from groq import Groq
         client = Groq(api_key=api_key)
         def call(system: str, user: str) -> str:
-            response = client.chat.completions.create(
+            r = client.chat.completions.create(
                 model=model,
-                messages=[
-                    {"role": "system", "content": system},
-                    {"role": "user",   "content": user}
-                ],
-                temperature=0.1,
-                max_tokens=2048
+                messages=[{"role": "system", "content": system},
+                          {"role": "user",   "content": user}],
+                temperature=0.1, max_tokens=3000
             )
-            return response.choices[0].message.content
+            return r.choices[0].message.content
         return call
 
     elif "Anthropic" in provider:
         import anthropic
         client = anthropic.Anthropic(api_key=api_key)
         def call(system: str, user: str) -> str:
-            msg = client.messages.create(
-                model=model, max_tokens=2048,
-                system=system,
-                messages=[{"role": "user", "content": user}]
-            )
-            return msg.content[0].text
+            m = client.messages.create(model=model, max_tokens=3000,
+                system=system, messages=[{"role": "user", "content": user}])
+            return m.content[0].text
         return call
 
     elif "Google" in provider:
         import google.generativeai as genai
         genai.configure(api_key=api_key)
-        gmodel = genai.GenerativeModel(model)
+        gm = genai.GenerativeModel(model)
         def call(system: str, user: str) -> str:
-            return gmodel.generate_content(f"{system}\n\n{user}").text
+            return gm.generate_content(f"{system}\n\n{user}").text
         return call
 
     elif "OpenAI" in provider:
         from openai import OpenAI
         client = OpenAI(api_key=api_key)
         def call(system: str, user: str) -> str:
-            response = client.chat.completions.create(
+            r = client.chat.completions.create(
                 model=model,
-                messages=[
-                    {"role": "system", "content": system},
-                    {"role": "user",   "content": user}
-                ],
-                temperature=0.1, max_tokens=2048
+                messages=[{"role": "system", "content": system},
+                          {"role": "user",   "content": user}],
+                temperature=0.1, max_tokens=3000
             )
-            return response.choices[0].message.content
+            return r.choices[0].message.content
         return call
 
     raise ValueError(f"Unknown provider: {provider}")
 
 
-# ─── System Prompt ─────────────────────────────────────────────────────────────
-BASE_SYSTEM_PROMPT = """You are a document compliance auditor. Your job is to analyze document text and identify compliance violations based on the rules provided.
+# ─── Enterprise Auditor System Prompt ────────────────────────────────────────
+ENTERPRISE_SYSTEM_PROMPT = """You are an Enterprise Compliance Auditor. Analyze the document and respond with ONLY a JSON object.
 
-Always respond ONLY with valid JSON in exactly this format:
+CRITICAL RULES:
+- Your ENTIRE response must be a single JSON object
+- Do NOT write any text before or after the JSON
+- Do NOT use markdown code blocks or backticks
+- Do NOT write "Here is..." or any explanation
+- Start your response with {{ and end with }}
+
+For each compliance control:
+1. Determine PASS or FAIL
+2. Find the exact violation text (max 80 chars), empty string if none
+3. Find the page number of the violation
+4. Assign severity: Critical, High, Medium, Low, or None
+5. Write a short explanation (1 sentence)
+6. Suggest a specific remediation
+
+Severity Guide:
+- Critical: passwords, API keys, Aadhaar numbers exposed
+- High: emails, phone numbers, PAN cards found
+- Medium: internal references, partial identifiers
+- Low: encoding issues, informal language
+- None: no violation found (PASS)
+
+YOUR RESPONSE MUST BE EXACTLY THIS JSON STRUCTURE:
 {{
-  "status": "PASS" or "FAIL",
-  "details": "Brief explanation of findings",
-  "flagged_pages": [list of page numbers with issues, e.g. [1, 3]],
-  "evidence": ["list of specific problematic snippets found (max 5)"]
+  "status": "PASS",
+  "severity": "None",
+  "flagged_pages": [],
+  "violation_text": "",
+  "explanation": "No violations found.",
+  "remediation": "No action required.",
+  "evidence": []
 }}
 
-Be precise and conservative. Only flag clear violations, not ambiguous content.
+OR if violations found:
+{{
+  "status": "FAIL",
+  "severity": "High",
+  "flagged_pages": [1, 2],
+  "violation_text": "john.doe@company.com",
+  "explanation": "Email address found on page 1.",
+  "remediation": "Redact all email addresses before sharing.",
+  "evidence": ["email on page 1: john.doe@company.com"]
+}}
 
 {retrieved_rules}"""
 
 
 def build_system_prompt(retrieved_rules: str) -> str:
-    return BASE_SYSTEM_PROMPT.format(retrieved_rules=retrieved_rules)
+    return ENTERPRISE_SYSTEM_PROMPT.format(retrieved_rules=retrieved_rules)
 
 
-def build_check_prompt(check_type: str, description: str, pages_text: str) -> str:
-    return f"""
-COMPLIANCE CHECK: {check_type}
-SPECIFIC RULE: {description}
+def build_check_prompt(control_name: str, control_description: str, pages_text: str) -> str:
+    return f"""COMPLIANCE CONTROL: {control_name}
+CONTROL DESCRIPTION: {control_description}
 
-Analyze the following document text page-by-page and determine if this compliance rule is violated.
+Analyze the following document content page by page.
 
 DOCUMENT CONTENT:
 {pages_text[:8000]}
 
-Respond with JSON only as specified in the system prompt.
-"""
+Return ONLY the JSON object as specified. No markdown, no extra text."""
 
 
-# ─── Node 1: Inject Credentials ───────────────────────────────────────────────
+def safe_parse(response: str) -> dict:
+    """
+    Robustly parse AI JSON response.
+    Handles markdown fences, leading text, and extracts
+    the first complete JSON object found in the response.
+    """
+    import json as _json
+    clean = response.strip()
+    # Remove markdown fences
+    clean = re.sub(r"```json\s*", "", clean)
+    clean = re.sub(r"```\s*",     "", clean)
+    clean = clean.strip()
+
+    # Try direct parse first
+    try:
+        return _json.loads(clean)
+    except _json.JSONDecodeError:
+        pass
+
+    # Extract first complete JSON object via brace matching
+    start = clean.find("{")
+    if start != -1:
+        depth = 0
+        for i, ch in enumerate(clean[start:], start):
+            if ch == "{":
+                depth += 1
+            elif ch == "}":
+                depth -= 1
+                if depth == 0:
+                    try:
+                        return _json.loads(clean[start:i+1])
+                    except _json.JSONDecodeError:
+                        break
+
+    raise ValueError(f"Could not parse JSON from response: {clean[:200]}")
+
+
+# ─── Node 1: Inject Credentials ──────────────────────────────────────────────
 def inject_credentials(state: ComplianceState) -> dict:
-    """Inject API credentials and reset report."""
     return {"report": {}, "retrieved_rules": "", "errors": []}
 
 
-# ─── Node 2: Retrieve Rules from Vector DB (RAG) ─────────────────────────────
+# ─── Node 2: RAG — Retrieve Rules ────────────────────────────────────────────
 def retrieve_rules(state: ComplianceState) -> dict:
-    """
-    RAG Node: Query Vector DB with document text to get the most
-    relevant compliance rules. Injects them into state for all
-    downstream check nodes to use.
-    """
     try:
         from utils.vector_store import retrieve_relevant_rules
-
-        # Use first 2 pages as the query context
         pages = state["pages"]
-        query_text = " ".join([
-            p["text"][:300] for p in pages[:2] if p.get("has_text")
-        ])
-
-        if not query_text.strip():
-            query_text = "document compliance check PII confidential information"
-
-        retrieved_rules = retrieve_relevant_rules(query_text, top_k=6)
-        return {"retrieved_rules": retrieved_rules}
-
+        query = " ".join([p["text"][:300] for p in pages[:2] if p.get("has_text")])
+        if not query.strip():
+            query = "document compliance check PII confidential information"
+        rules_text = retrieve_relevant_rules(query, top_k=6)
+        return {"retrieved_rules": rules_text}
     except Exception as e:
-        # Fallback to default rules if Vector DB fails
         from utils.vector_store import _get_default_rules_text
-        return {
-            "retrieved_rules": _get_default_rules_text(),
-            "errors": [f"Vector DB retrieval failed: {str(e)} — using default rules"]
-        }
+        return {"retrieved_rules": _get_default_rules_text(),
+                "errors": [f"Vector DB fallback: {str(e)}"]}
 
 
-# ─── Node 3: PII Check ────────────────────────────────────────────────────────
+# ─── Node 3: PII Control ─────────────────────────────────────────────────────
 def check_pii(state: ComplianceState) -> dict:
-    """Check for PII using Regex + AI with retrieved rules."""
     rules_config = state.get("rules_config", {})
     if not rules_config.get("pii_check", True):
         report = dict(state.get("report", {}))
-        report["PII Detection"] = {"status": "SKIP", "details": "Rule disabled", "flagged_pages": [], "evidence": []}
+        report["PII & Personal Data"] = {
+            "status": "SKIP", "severity": "None",
+            "flagged_pages": [], "violation_text": "",
+            "explanation": "Control disabled by admin.",
+            "remediation": "Enable this control to check for PII.",
+            "evidence": []
+        }
         return {"report": report}
 
     pages = state["pages"]
 
     # Fast regex pre-scan
     pii_patterns = {
-        "email":       r'\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b',
-        "phone":       r'(\+?91[-.\s]?)?[6-9]\d{9}|(\+?1[-.\s]?)?(\(?\d{3}\)?[-.\s]?)?\d{3}[-.\s]?\d{4}',
-        "aadhaar":     r'\b\d{4}\s?\d{4}\s?\d{4}\b',
-        "pan":         r'\b[A-Z]{5}[0-9]{4}[A-Z]\b',
-        "ssn":         r'\b\d{3}-\d{2}-\d{4}\b',
-        "credit_card": r'\b(?:\d{4}[-\s]?){3}\d{4}\b',
-        "api_key":     r'\b(sk-[a-zA-Z0-9]{20,}|gsk_[a-zA-Z0-9]{20,}|AIza[a-zA-Z0-9]{35})\b',
+        "Email":        r'\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b',
+        "Phone":        r'(\+?91[-.\s]?)?[6-9]\d{9}|(\+?1[-.\s]?)?(\(?\d{3}\)?[-.\s]?)?\d{3}[-.\s]?\d{4}',
+        "Aadhaar":      r'\b\d{4}\s?\d{4}\s?\d{4}\b',
+        "PAN":          r'\b[A-Z]{5}[0-9]{4}[A-Z]\b',
+        "SSN":          r'\b\d{3}-\d{2}-\d{4}\b',
+        "Credit Card":  r'\b(?:\d{4}[-\s]?){3}\d{4}\b',
+        "API Key":      r'\b(sk-[a-zA-Z0-9]{20,}|gsk_[a-zA-Z0-9]{20,}|AIza[a-zA-Z0-9]{35})\b',
+        "Password":     r'(?i)(password|passwd|pwd)\s*[:=]\s*\S+',
     }
 
     flagged_pages = []
-    evidence = []
+    evidence      = []
+    violation_text = ""
+
     for page in pages:
         text = page["text"]
         for pii_type, pattern in pii_patterns.items():
-            if re.search(pattern, text, re.IGNORECASE):
+            match = re.search(pattern, text, re.IGNORECASE)
+            if match:
                 flagged_pages.append(page["page_num"])
-                evidence.append(f"{pii_type} found on page {page['page_num']}")
+                snippet = match.group(0)[:80]
+                evidence.append(f"{pii_type} on page {page['page_num']}: \"{snippet}\"")
+                if not violation_text:
+                    violation_text = snippet
                 break
 
     if flagged_pages:
+        severity = "Critical" if any(k in str(evidence) for k in ["API Key", "Password", "Aadhaar"]) else "High"
         result = {
-            "status": "FAIL",
-            "details": f"PII detected on {len(set(flagged_pages))} page(s): {'; '.join(evidence[:3])}",
-            "flagged_pages": list(set(flagged_pages)),
-            "evidence": evidence[:5]
+            "status":         "FAIL",
+            "severity":       severity,
+            "flagged_pages":  list(set(flagged_pages)),
+            "violation_text": violation_text,
+            "explanation":    f"PII detected on {len(set(flagged_pages))} page(s): {', '.join(evidence[:2])}",
+            "remediation":    "Redact or anonymize all personal identifiers before document distribution.",
+            "evidence":       evidence[:5]
         }
     else:
         try:
             ai = get_ai_client(state["provider"], state["api_key"], state["model"])
             pages_text = "\n\n".join([f"[PAGE {p['page_num']}]\n{p['text'][:500]}" for p in pages])
-            system = build_system_prompt(state.get("retrieved_rules", ""))
+            system   = build_system_prompt(state.get("retrieved_rules", ""))
             response = ai(system, build_check_prompt(
-                "PII Detection",
-                rules_config.get("pii_description", "Flag any personal identifying information"),
+                "PII & Personal Data",
+                rules_config.get("pii_description", "Flag emails, phones, Aadhaar, PAN, SSN, credit cards, API keys"),
                 pages_text
             ))
-            clean = response.strip().replace("```json", "").replace("```", "").strip()
-            result = json.loads(clean)
+            result = safe_parse(response)
         except Exception as e:
-            result = {"status": "PASS", "details": f"Regex scan clear. AI check note: {str(e)[:100]}", "flagged_pages": [], "evidence": []}
+            result = {
+                "status": "PASS", "severity": "None",
+                "flagged_pages": [], "violation_text": "",
+                "explanation": f"Regex scan clear. AI note: {str(e)[:80]}",
+                "remediation": "No action required.", "evidence": []
+            }
 
     report = dict(state.get("report", {}))
-    report["PII Detection"] = result
+    report["PII & Personal Data"] = result
     return {"report": report}
 
 
-# ─── Node 4: Confidential Info Check ─────────────────────────────────────────
+# ─── Node 4: Confidential Info Control ───────────────────────────────────────
 def check_confidential(state: ComplianceState) -> dict:
-    """Check for confidential information using AI + retrieved rules."""
     rules_config = state.get("rules_config", {})
     if not rules_config.get("confidential_check", True):
         report = dict(state.get("report", {}))
-        report["Confidential Info"] = {"status": "SKIP", "details": "Rule disabled", "flagged_pages": [], "evidence": []}
+        report["Confidential Information"] = {
+            "status": "SKIP", "severity": "None",
+            "flagged_pages": [], "violation_text": "",
+            "explanation": "Control disabled.", "remediation": "", "evidence": []
+        }
         return {"report": report}
 
     try:
         ai = get_ai_client(state["provider"], state["api_key"], state["model"])
         pages = state["pages"]
         pages_text = "\n\n".join([f"[PAGE {p['page_num']}]\n{p['text'][:600]}" for p in pages])
-        system = build_system_prompt(state.get("retrieved_rules", ""))
+        system   = build_system_prompt(state.get("retrieved_rules", ""))
         response = ai(system, build_check_prompt(
             "Confidential Information",
-            rules_config.get("confidential_description", "Flag sensitive business information, API keys, passwords"),
+            rules_config.get("confidential_description", "Flag trade secrets, internal financials, API keys, passwords, IP"),
             pages_text
         ))
-        clean = response.strip().replace("```json", "").replace("```", "").strip()
-        result = json.loads(clean)
+        result = safe_parse(response)
     except Exception as e:
-        result = {"status": "ERROR", "details": str(e)[:200], "flagged_pages": [], "evidence": []}
+        result = {
+            "status": "ERROR", "severity": "Medium",
+            "flagged_pages": [], "violation_text": "",
+            "explanation": str(e)[:150],
+            "remediation": "Retry with a valid API key.", "evidence": []
+        }
 
     report = dict(state.get("report", {}))
-    report["Confidential Info"] = result
+    report["Confidential Information"] = result
     return {"report": report}
 
 
-# ─── Node 5: Encoding Check ───────────────────────────────────────────────────
+# ─── Node 5: Encoding Control ─────────────────────────────────────────────────
 def check_encoding(state: ComplianceState) -> dict:
-    """Check UTF-8 encoding consistency using page metadata."""
     rules_config = state.get("rules_config", {})
     if not rules_config.get("encoding_check", True):
         report = dict(state.get("report", {}))
-        report["Encoding Check"] = {"status": "SKIP", "details": "Rule disabled", "flagged_pages": [], "evidence": []}
+        report["Encoding & Language"] = {
+            "status": "SKIP", "severity": "None",
+            "flagged_pages": [], "violation_text": "",
+            "explanation": "Control disabled.", "remediation": "", "evidence": []
+        }
         return {"report": report}
 
-    flagged_pages = []
-    issues = []
+    flagged_pages  = []
+    evidence       = []
+    violation_text = ""
+
     for page in state["pages"]:
-        page_issues = page.get("encoding_issues", [])
-        if page_issues:
+        issues = page.get("encoding_issues", [])
+        if issues:
             flagged_pages.append(page["page_num"])
-            issues.extend([f"Page {page['page_num']}: {issue}" for issue in page_issues])
+            for issue in issues:
+                evidence.append(f"Page {page['page_num']}: {issue}")
+            if not violation_text:
+                violation_text = issues[0][:80]
 
     if flagged_pages:
         result = {
-            "status": "FAIL",
-            "details": f"Encoding issues on pages: {flagged_pages}. {'; '.join(issues[:3])}",
-            "flagged_pages": flagged_pages,
-            "evidence": issues[:5]
+            "status":         "FAIL",
+            "severity":       "Low",
+            "flagged_pages":  flagged_pages,
+            "violation_text": violation_text,
+            "explanation":    f"Encoding issues found on {len(flagged_pages)} page(s).",
+            "remediation":    "Re-export the document as UTF-8 encoded PDF with English text only.",
+            "evidence":       evidence[:5]
         }
     else:
         result = {
-            "status": "PASS",
-            "details": "All pages have consistent UTF-8 encoding with English text only.",
-            "flagged_pages": [],
-            "evidence": []
+            "status":         "PASS",
+            "severity":       "None",
+            "flagged_pages":  [],
+            "violation_text": "",
+            "explanation":    "All pages use consistent UTF-8 encoding with English text.",
+            "remediation":    "No action required.",
+            "evidence":       []
         }
 
     report = dict(state.get("report", {}))
-    report["Encoding Check"] = result
+    report["Encoding & Language"] = result
     return {"report": report}
 
 
-# ─── Node 6: Abusive Content Check ───────────────────────────────────────────
+# ─── Node 6: Abusive Content Control ─────────────────────────────────────────
 def check_abusive_content(state: ComplianceState) -> dict:
-    """Check for abusive or unlawful content using keyword filter + AI."""
     rules_config = state.get("rules_config", {})
     if not rules_config.get("abusive_check", True):
         report = dict(state.get("report", {}))
-        report["Abusive Content"] = {"status": "SKIP", "details": "Rule disabled", "flagged_pages": [], "evidence": []}
+        report["Abusive & Unlawful Content"] = {
+            "status": "SKIP", "severity": "None",
+            "flagged_pages": [], "violation_text": "",
+            "explanation": "Control disabled.", "remediation": "", "evidence": []
+        }
         return {"report": report}
 
-    abusive_keywords = ["kill", "murder", "threat", "illegal", "fraud", "scam",
-                        "drug", "weapon", "bomb", "hate", "racist", "slur", "abuse"]
-    pages = state["pages"]
-    pre_flagged = [p["page_num"] for p in pages
-                   if any(kw in p["text"].lower() for kw in abusive_keywords)]
+    keywords = ["kill", "murder", "threat", "illegal", "fraud", "scam",
+                "drug", "weapon", "bomb", "hate", "racist", "slur", "abuse"]
+    pages        = state["pages"]
+    pre_flagged  = [p["page_num"] for p in pages
+                    if any(kw in p["text"].lower() for kw in keywords)]
 
     try:
         ai = get_ai_client(state["provider"], state["api_key"], state["model"])
         pages_text = "\n\n".join([f"[PAGE {p['page_num']}]\n{p['text'][:500]}" for p in pages])
-        system = build_system_prompt(state.get("retrieved_rules", ""))
+        system   = build_system_prompt(state.get("retrieved_rules", ""))
         response = ai(system, build_check_prompt(
             "Abusive & Unlawful Content",
             rules_config.get("abusive_description", "Flag abusive, offensive, or unlawful content"),
             pages_text
         ))
-        clean = response.strip().replace("```json", "").replace("```", "").strip()
-        result = json.loads(clean)
+        result = safe_parse(response)
         if pre_flagged and result.get("status") == "PASS":
-            result["details"] += f" (Keywords flagged on pages {pre_flagged} — manual review recommended)"
+            result["explanation"] += f" Keywords flagged pages {pre_flagged} for manual review."
     except Exception as e:
         result = {
-            "status": "PASS" if not pre_flagged else "WARN",
-            "details": f"AI check note: {str(e)[:100]}. Keyword scan: {'issues on pages ' + str(pre_flagged) if pre_flagged else 'clear'}",
-            "flagged_pages": pre_flagged,
-            "evidence": []
+            "status":         "PASS" if not pre_flagged else "WARN",
+            "severity":       "None" if not pre_flagged else "Medium",
+            "flagged_pages":  pre_flagged,
+            "violation_text": "",
+            "explanation":    f"AI check note: {str(e)[:80]}. Keyword scan: {'issues on pages ' + str(pre_flagged) if pre_flagged else 'clear'}",
+            "remediation":    "Manual review recommended for flagged pages." if pre_flagged else "No action required.",
+            "evidence":       []
         }
 
     report = dict(state.get("report", {}))
-    report["Abusive Content"] = result
+    report["Abusive & Unlawful Content"] = result
     return {"report": report}
 
 
-# ─── Node 7: Aggregate Results ────────────────────────────────────────────────
+# ─── Node 7: Aggregate ────────────────────────────────────────────────────────
 def aggregate_results(state: ComplianceState) -> dict:
-    """Summarize all compliance check results."""
-    report = state.get("report", {})
-    failed = [k for k, v in report.items() if v.get("status") == "FAIL"]
-    total_flagged = sum(len(v.get("flagged_pages", [])) for v in report.values())
+    report  = state.get("report", {})
+    failed  = [k for k, v in report.items() if v.get("status") == "FAIL"]
+    passed  = [k for k, v in report.items() if v.get("status") == "PASS"]
+    skipped = [k for k, v in report.items() if v.get("status") == "SKIP"]
+
+    severity_order = {"Critical": 4, "High": 3, "Medium": 2, "Low": 1, "None": 0}
+    highest_sev = max(
+        (severity_order.get(v.get("severity", "None"), 0) for v in report.values()),
+        default=0
+    )
+    sev_map_rev = {4: "Critical", 3: "High", 2: "Medium", 1: "Low", 0: "None"}
 
     report["_summary"] = {
-        "total_checks": len(report),
-        "failed_checks": len(failed),
-        "passed_checks": len(report) - len(failed),
-        "total_pages_flagged": total_flagged,
-        "overall_status": "FAIL" if failed else "PASS",
-        "failed_rules": failed,
-        "rules_source": "Vector DB (RAG)" if state.get("retrieved_rules") else "Default"
+        "total_controls":    len(report),
+        "failed_controls":   len(failed),
+        "passed_controls":   len(passed),
+        "skipped_controls":  len(skipped),
+        "highest_severity":  sev_map_rev[highest_sev],
+        "overall_status":    "FAIL" if failed else "PASS",
+        "failed_controls_list": failed,
+        "rules_source":      "Vector DB (RAG)" if state.get("retrieved_rules") else "Default"
     }
     return {"report": report}
 
 
 # ─── Pipeline Builder ─────────────────────────────────────────────────────────
 def build_pipeline(api_key: str, provider: str, model: str, rules_config: dict):
-    """Build and compile the LangGraph RAG compliance pipeline."""
-    try:
-        from langgraph.graph import StateGraph, START, END
-    except ImportError:
-        raise ImportError("Run: pip install langgraph")
+    from langgraph.graph import StateGraph, START, END
 
     def inject(state):
         return {
-            "api_key": api_key,
-            "provider": provider,
-            "model": model,
-            "rules_config": rules_config,
-            "report": {},
+            "api_key":       api_key,
+            "provider":      provider,
+            "model":         model,
+            "rules_config":  rules_config,
+            "report":        {},
             "retrieved_rules": "",
-            "errors": []
+            "errors":        []
         }
 
-    builder = StateGraph(ComplianceState)
+    b = StateGraph(ComplianceState)
+    b.add_node("inject_credentials",    inject)
+    b.add_node("retrieve_rules",        retrieve_rules)
+    b.add_node("check_pii",             check_pii)
+    b.add_node("check_confidential",    check_confidential)
+    b.add_node("check_encoding",        check_encoding)
+    b.add_node("check_abusive_content", check_abusive_content)
+    b.add_node("aggregate_results",     aggregate_results)
 
-    builder.add_node("inject_credentials",    inject)
-    builder.add_node("retrieve_rules",        retrieve_rules)   # ← RAG node
-    builder.add_node("check_pii",             check_pii)
-    builder.add_node("check_confidential",    check_confidential)
-    builder.add_node("check_encoding",        check_encoding)
-    builder.add_node("check_abusive_content", check_abusive_content)
-    builder.add_node("aggregate_results",     aggregate_results)
+    b.add_edge(START,                   "inject_credentials")
+    b.add_edge("inject_credentials",    "retrieve_rules")
+    b.add_edge("retrieve_rules",        "check_pii")
+    b.add_edge("check_pii",             "check_confidential")
+    b.add_edge("check_confidential",    "check_encoding")
+    b.add_edge("check_encoding",        "check_abusive_content")
+    b.add_edge("check_abusive_content", "aggregate_results")
+    b.add_edge("aggregate_results",     END)
 
-    builder.add_edge(START,                  "inject_credentials")
-    builder.add_edge("inject_credentials",   "retrieve_rules")      # ← RAG first
-    builder.add_edge("retrieve_rules",       "check_pii")
-    builder.add_edge("check_pii",            "check_confidential")
-    builder.add_edge("check_confidential",   "check_encoding")
-    builder.add_edge("check_encoding",       "check_abusive_content")
-    builder.add_edge("check_abusive_content","aggregate_results")
-    builder.add_edge("aggregate_results",    END)
-
-    return builder.compile()
+    return b.compile()
